@@ -1,0 +1,39 @@
+# 04. Debugging and Diagnostics
+
+## Starting in Inspect Mode
+$ node --inspect app.js
+Debugger listening on ws://127.0.0.1:9229/7ba72a6f-09fe-4989-a35a-7d804b20939a
+For help, see: https://nodejs.org/en/docs/inspector
+C:\Users\NE0036\Desktop\nodeDev\app.js:3
+    if (n === 0) throw Error()
+                 ^
+Error
+    at f (C:\Users\NE0036\Desktop\nodeDev\app.js:3:24)
+    at f (C:\Users\NE0036\Desktop\nodeDev\app.js:4:5)
+    at f (C:\Users\NE0036\Desktop\nodeDev\app.js:4:5)
+    at f (C:\Users\NE0036\Desktop\nodeDev\app.js:4:5)
+    at f (C:\Users\NE0036\Desktop\nodeDev\app.js:4:5)
+    at f (C:\Users\NE0036\Desktop\nodeDev\app.js:4:5)
+    at f (C:\Users\NE0036\Desktop\nodeDev\app.js:4:5)
+    at f (C:\Users\NE0036\Desktop\nodeDev\app.js:4:5)
+    at f (C:\Users\NE0036\Desktop\nodeDev\app.js:4:5)
+    at f (C:\Users\NE0036\Desktop\nodeDev\app.js:4:5)
+
+$ node --inspect-brk app.js
+Debugger listening on ws://127.0.0.1:9229/1e6b7dfc-6363-485d-a91a-a77303b76e18
+For help, see: https://nodejs.org/en/docs/inspector
+
+-  In order to begin debugging the process, 
+    the next step is to set a Chrome browser tab's address bar to `chrome://inspect`
+
+## Breaking on Error in Devtools
+
+## Adding a Breakpoint in Devtools
+
+## Adding a Breakpoint in Code
+function f (n = 99) {
+  if (n === 0) throw Error()
+  debugger
+  f(n - 1)
+}
+f()

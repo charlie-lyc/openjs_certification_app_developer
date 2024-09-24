@@ -1,0 +1,89 @@
+# 03. The Node Binary
+
+## Printing Command Options
+$ node --help
+$ node --v8-options
+
+## Checking Syntax
+$ node --check app.js
+$ node -c app.js
+
+## Dynamic Evaluation
+$ node --print '1+1'
+2
+$ node --eval '1+1'
+$ node -e 'console.log(1+1)'
+2
+$ node -p 'console.log(1+1)'
+2
+undefined
+$ node -p "fs.readdirSync('.').filter((f) => /.js$/.test(f))"
+[]
+$ node -p "fs.readdirSync('.').filter((f) => /.js$/.test(f))"
+[ 'example03-1.js' ]
+$ node -p "fs.readdirSync('.').filter((f) => /.js$/.test(f))"
+[ 'example03-1.js', 'example03-2.js' ]
+
+## Preloading CommonJS Modules
+$ node --require ./preload.js app.js
+preload.js: this is preloaded
+app.js: this is the main file
+$ node -r ./preload.js app.js
+preload.js: this is preloaded
+app.js: this is the main file
+
+## Stack Trace Limit: setting stack size
+$ node app.js
+    if (n === 0) throw Error()
+                 ^
+Error
+    at f (C:\Users\NE0036\Desktop\nodeDev\app.js:6:24)
+    at f (C:\Users\NE0036\Desktop\nodeDev\app.js:7:5)
+    at f (C:\Users\NE0036\Desktop\nodeDev\app.js:7:5)
+    at f (C:\Users\NE0036\Desktop\nodeDev\app.js:7:5)
+    at f (C:\Users\NE0036\Desktop\nodeDev\app.js:7:5)
+    at f (C:\Users\NE0036\Desktop\nodeDev\app.js:7:5)
+    at f (C:\Users\NE0036\Desktop\nodeDev\app.js:7:5)
+    at f (C:\Users\NE0036\Desktop\nodeDev\app.js:7:5)
+    at f (C:\Users\NE0036\Desktop\nodeDev\app.js:7:5)
+    at f (C:\Users\NE0036\Desktop\nodeDev\app.js:7:5)
+
+$ node --stack-trace-limit=101 app.js
+C:\Users\NE0036\Desktop\nodeDev\app.js:6
+    if (n === 0) throw Error()
+                 ^
+Error
+    at f (C:\Users\NE0036\Desktop\nodeDev\app.js:6:24)
+    at f (C:\Users\NE0036\Desktop\nodeDev\app.js:7:5)
+    at f (C:\Users\NE0036\Desktop\nodeDev\app.js:7:5)
+    at f (C:\Users\NE0036\Desktop\nodeDev\app.js:7:5)
+    at f (C:\Users\NE0036\Desktop\nodeDev\app.js:7:5)
+    at f (C:\Users\NE0036\Desktop\nodeDev\app.js:7:5)
+    at f (C:\Users\NE0036\Desktop\nodeDev\app.js:7:5)
+    at f (C:\Users\NE0036\Desktop\nodeDev\app.js:7:5)
+    at f (C:\Users\NE0036\Desktop\nodeDev\app.js:7:5)
+    at f (C:\Users\NE0036\Desktop\nodeDev\app.js:7:5)
+
+$ node --stack-trace-limit=99999 app.js
+C:\Users\NE0036\Desktop\nodeDev\app.js:6
+    if (n === 0) throw Error()
+                 ^
+Error
+    at f (C:\Users\NE0036\Desktop\nodeDev\app.js:6:24)
+    at f (C:\Users\NE0036\Desktop\nodeDev\app.js:7:5)
+    at f (C:\Users\NE0036\Desktop\nodeDev\app.js:7:5)
+    at f (C:\Users\NE0036\Desktop\nodeDev\app.js:7:5)
+    at f (C:\Users\NE0036\Desktop\nodeDev\app.js:7:5)
+    at f (C:\Users\NE0036\Desktop\nodeDev\app.js:7:5)
+    at f (C:\Users\NE0036\Desktop\nodeDev\app.js:7:5)
+    at f (C:\Users\NE0036\Desktop\nodeDev\app.js:7:5)
+    at f (C:\Users\NE0036\Desktop\nodeDev\app.js:7:5)
+    at f (C:\Users\NE0036\Desktop\nodeDev\app.js:7:5)
+...
+    at Object.<anonymous> (C:\Users\NE0036\Desktop\nodeDev\app.js:9:1)
+    at Module._compile (node:internal/modules/cjs/loader:1369:14)
+    at Module._extensions..js (node:internal/modules/cjs/loader:1427:10)
+    at Module.load (node:internal/modules/cjs/loader:1206:32)
+    at Module._load (node:internal/modules/cjs/loader:1022:12)
+    at Function.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:135:12)
+    at node:internal/main/run_main_module:28:49

@@ -1,0 +1,21 @@
+# 02. Setting Up
+
+## Installing Node.js on macOS and Linux
+$ curl -o- htt‌ps://raw.githubusercontent.com/nvm-sh/nvm/v0.39.5/install.sh | bash
+$ nvm install 20
+$ nvm use 20
+$ node -v
+
+## Installing Node.js on Windows
+$ winget install jasongin.nvs
+$ nvs add 20
+$ nvs use 20
+$ node -v
+
+## Node Check
+$ node -v
+
+## NPM Check
+$ npm -v
+
+

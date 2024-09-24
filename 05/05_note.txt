@@ -1,0 +1,386 @@
+# 05. Key Javascript Concepts
+
+## Data Types
+- 1. null: null
+- 2. undefined: undefined
+- 3. number: 1, 1.5, -1e4, NaN
+- 4. bigInt: 1n, 9007199254740993n
+- 5. string: 'str', "str", `str ${var}`
+- 6. boolean: true, false
+- 7. symbol: Symbol('description'), Symbol.for('namespace')
+
+- An object with a key holding a value that is another object allows for nested data structures:
+const obj = { myKey: { thisIs: 'a nested object' } }
+console.log(obj.myKey)
+
+/*********************************************************************/
+
+## Functions
+- For instance a function can be returned from a function:
+function factory () {
+  return function doSomething () {}
+}
+
+- A function can be passed to another function as an argument:
+setTimeout(function () { console.log('hello from the future') }, 100)
+
+- A function can be assigned to an object:
+const obj = { id: 999, fn: function () { console.log(this.id) } }
+obj.fn() // prints 999
+
+- It's crucial to understand that this refers to the object on which the function was called, 
+    not the object which the function was assigned to:
+const obj = { id: 999, fn: function () { console.log(this.id) } }
+const obj2 = { id: 2, fn: obj.fn }
+obj2.fn() // prints 2
+obj.fn() // prints 999
+
+- Functions have a call method that can be used to set their this context:
+function fn() { console.log(this.id) }
+const obj = { id: 999 }
+const obj2 = { id: 2 }
+fn.call(obj2) // prints 2
+fn.call(obj) // prints 999
+fn.call({id: ':)'}) // prints :)
+
+- There are also fat arrow functions, also known as lambda functions:
+const add = (a, b) => a + 1
+const cube = (n) => {
+  return Math.pow(n, 3)
+}
+
+- When defined without curly braces, the expression following the fat arrow (=>) is the return value of the function. 
+    Lambda functions do not have their own this context, when this is referenced inside a function, 
+    it refers to the this of the nearest parent non-lambda function.
+function fn() {
+  return (offset) => {
+   console.log(this.id + offset)
+  }
+}
+const obj = { id: 999 }
+const offsetter = fn.call(obj)
+offsetter(0) // prints 999 (999 + 0)
+offsetter(1) // prints 1000 (999 + 1)
+offsetter(2) // prints 1001 (999 + 2)
+
+- While normal functions have a prototype property (which will be discussed in detail shortly), 
+    fat arrow functions do not:
+function normalFunction () { }
+const fatArrowFunction = () => {}
+console.log(typeof normalFunction.prototype) // prints 'object'
+console.log(typeof fatArrowFunction.prototype) // prints 'undefined'
+
+* There are many approaches and variations to creating a prototype chain in JavaScript 
+    but we will explore three common approaches: 
+    - functional
+    - constructor functions
+    - class-syntax constructors
+    
+/*********************************************************************/
+
+## Prototypal Inheritance (Functional)
+- The functional approach to creating prototype chains is to use Object.create:
+
+const wolf = {
+  howl: function () { console.log(this.name + ': awoooooooo') }
+}
+const dog = Object.create(wolf, {
+  woof: { value: function() { console.log(this.name + ': woof') } }
+})
+const rufus = Object.create(dog, {
+  name: { value: 'Rufus the dog' }
+})
+rufus.woof() // prints "Rufus the dog: woof"
+rufus.howl() // prints "Rufus the dog: awoooooooo"
+
+- To describe the full prototype chain:
+    the prototype of rufus is dog
+    the prototype of dog is wolf
+    the prototype of wolf is Object.prototype
+
+- The 'Object.getOwnPropertyDescriptor' can be used to get a property descriptor on any object:
+$ node -p "Object.getOwnPropertyDescriptor(process, 'title')"
+{
+  value: 'C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe',
+  writable: true,
+  enumerable: true,
+  configurable: true
+}
+
+$ node -p "Object.getOwnPropertyDescriptor(global, 'process')"
+{
+  get: [Function: get],
+  set: [Function: set],
+  enumerable: false,
+  configurable: true
+}
+
+- Similarly when rufus.howl is called the JavaScript runtime performs the following steps:
+    Check if rufus has a howl property; it does not
+    Check if the prototype of rufus (which is dog) has a howl property; it does not
+    Check if the prototype of dog (which is wolf) has a howl property; it does
+    Execute the howl function setting this to rufus, so this.name will be "Rufus the dog"
+
+- To complete the functional paradigm as it applies to prototypal inheritance, 
+    the creation of an instance of a dog can be genericized with a function:
+const wolf = {
+  howl: function () { console.log(this.name + ': awoooooooo') }
+}
+const dog = Object.create(wolf, {
+  woof: { value: function() { console.log(this.name + ': woof') } }
+})
+function createDog (name) {
+  return Object.create(dog, {
+    name: {value: name + ' the dog'}
+  })
+}
+const rufus = createDog('Rufus')
+rufus.woof() // prints "Rufus the dog: woof"
+rufus.howl() // prints "Rufus the dog: awoooooooo"
+
+- The prototype of an object can be inspected with Object.getPrototypeOf:
+console.log(Object.getPrototypeOf(rufus) === dog) // true
+console.log(Object.getPrototypeOf(dog) === wolf) // true
+
+/*********************************************************************/
+
+## Prototypal Inheritance (Constructor Functions)
+- All functions have a prototype property. 
+    The Constructor approach to creating a prototype chain is to define properties 
+    on a function's prototype object and then call that function with new:
+function Wolf (name) {
+  this.name = name
+}
+Wolf.prototype.howl = function () {
+  console.log(this.name + ': awoooooooo')
+}
+function Dog (name) {
+  Wolf.call(this, name + ' the dog')
+}
+function inherit (proto) {
+  function ChainLink(){}
+  ChainLink.prototype = proto
+  return new ChainLink()
+}
+Dog.prototype = inherit(Wolf.prototype)
+Dog.prototype.woof = function () {
+  console.log(this.name + ': woof')
+}
+const rufus = new Dog('Rufus')
+rufus.woof() // prints "Rufus the dog: woof"
+rufus.howl() // prints "Rufus the dog: awoooooooo"
+
+- This will setup the same prototype chain as in the functional Prototypal Inheritance example:
+console.log(Object.getPrototypeOf(rufus) === Dog.prototype) //true
+console.log(Object.getPrototypeOf(Dog.prototype) === Wolf.prototype) //true
+
+- To describe the full prototype chain:
+    the prototype of rufus is Dog.prototype
+    the prototype of Dog.prototype is Wolf.prototype
+    the prototype of Wolf.prototype is Object.prototype.
+
+- In JavaScript runtimes that support EcmaScript 5+ the Object.create function could be used to the same effect:
+function Dog (name) {
+  Wolf.call(this, name + ' the dog')
+}
+Dog.prototype = Object.create(Wolf.prototype)
+Dog.prototype.woof = function () {
+  console.log(this.name + ': woof')
+}
+
+- Node.js has a utility function: util.inherits that is often used in code bases using constructor functions:
+const util = require('util')
+function Dog (name) {
+  Wolf.call(this, name + ' the dog')
+}
+Dog.prototype.woof = function () {
+  console.log(this.name + ': woof')
+}
+util.inherits(Dog, Wolf)
+
+- In contemporary Node.js, util.inherits uses the EcmaScript 2015 (ES6) method Object.setPrototypeOf under the hood. 
+    It's essentially executing the following:
+Object.setPrototypeOf(Dog.prototype, Wolf.prototype)
+
+/*********************************************************************/
+
+## Prototypal Inheritance (Class-Syntax Constructors)
+$ node -p 'class Foo{}; typeof Foo'
+function
+
+- The class syntax sugar does reduce boilerplate when creating a prototype chain:
+class Wolf {
+  constructor (name) {
+    this.name = name
+  }
+  howl () { console.log(this.name + ': awoooooooo') }
+}
+class Dog extends Wolf {
+  constructor(name) {
+    super(name + ' the dog')
+  }
+  woof () { console.log(this.name + ': woof') }
+}
+const rufus = new Dog('Rufus')
+rufus.woof() // prints "Rufus the dog: woof"
+rufus.howl() // prints "Rufus the dog: awoooooooo"
+
+- This will setup the same prototype chain as in the Functional Prototypal Inheritance 
+    and the Function Constructors Prototypal Inheritance examples:
+console.log(Object.getPrototypeOf(rufus) === Dog.prototype) //true
+console.log(Object.getPrototypeOf(Dog.prototype) === Wolf.prototype) //true
+
+- To describe the full prototype chain:
+    the prototype of rufus is Dog.prototype
+    the prototype of Dog.prototype is Wolf.prototype
+    the prototype of Wolf.prototype is Object.prototype
+
+- Let's take a look at the Wolf class again:
+class Wolf {
+  constructor (name) {
+    this.name = name
+  }
+  howl () { console.log(this.name + ': awoooooooo') }
+}
+
+- This is desugared to:
+function Wolf (name) {
+  this.name = name
+}
+Wolf.prototype.howl = function () {
+ console.log(this.name + ': awoooooooo')
+}
+
+/*********************************************************************/
+
+## Closure Scope
+
+- When a function is inside another function, 
+    it can access both its own closure scope, and the parent closure scope of the outer function:
+function outerFn () {
+  var foo = true
+  function print() { console.log(foo) }
+  print() // prints true
+  foo = false
+  print() // prints false
+}
+outerFn()
+
+- If there is a naming collision then the reference to the nearest closure scope takes precedence:
+function outerFn () {
+  var foo = true
+  function print(foo) { console.log(foo) }
+  print(1) // prints 1
+  foo = false
+  print(2) // prints 2
+}
+outerFn()
+
+- Closure scope cannot be accessed outside of a function:
+function outerFn () {
+  var foo = true
+}
+outerFn()
+console.log(foo) // will throw a ReferenceError
+
+- Since the invisible closure scope object cannot be accessed outside of a function, 
+    if a function returns a function, 
+    the returned function can provide controlled access to the parent closure scope. 
+    In essence, this provides encapsulation of private state:
+
+function init (type) {
+  var id = 0
+  return (name) => {
+    id += 1
+    return { id: id, type: type, name: name }
+  }
+}
+const createUser = init('user')
+const createBook = init('book')
+const dave = createUser('Dave')
+const annie = createUser('Annie')
+const ncb = createBook('Node Cookbook')
+console.log(dave) // prints {id: 1, type: 'user', name: 'Dave'}
+console.log(annie) // prints {id: 2, type: 'user', name: 'Annie'}
+console.log(ncb) // prints {id: 1, type: 'book', name: 'Node Cookbook'}
+
+- Another example of encapsulating state using closure scope would be to enclose a secret:
+function createSigner (secret) {
+  const keypair = createKeypair(secret)
+  return function (content) {
+     return {
+        signed: cryptoSign(content, keypair.privateKey),
+        publicKey: keypair.publicKey
+     }
+  }
+}
+const sign = createSigner('super secret thing')
+const signedContent = sign('sign me')
+const moreSignedContent = sign('sign me as well')
+
+- Closure scope can also be used as an alternative to prototypal inheritance. 
+    The following example provides equivalent functionality 
+    and the same level of composability as the three prototypal inheritance examples 
+    but it doesn't use a prototype chain, nor does it rely the implicit this keyword:
+function wolf (name) {
+  const howl = () => {
+    console.log(name + ': awoooooooo')
+  }
+  return { howl: howl }
+}
+function dog (name) {
+  name = name + ' the dog'
+  const woof = () => { console.log(name + ': woof') }
+  return {
+    ...wolf(name),
+    woof: woof
+  }
+}
+const rufus = dog('Rufus')
+rufus.woof() // prints "Rufus the dog: woof"
+rufus.howl() // prints "Rufus the dog: awoooooooo"
+
+/*********************************************************************/
+
+## Excercises - Closure Scope
+'uses trict'
+
+function prefixer (prefix) {
+    // ...
+}
+const sayHiTo = prefixer('Hello')
+const sayByeTo = prefixer('Goodbye')
+console.log(sayHiTo('Dave')) // prints'HelloDave'
+console.log(sayHiTo('Annie')) // prints'HelloAnnie'
+console.log(sayByeTo('Dave')) // prints'GoodbyeDave'
+
+/*********************************************************************/
+
+## Excercises - Prototypal Inheritance
+const assert = require('assert')
+
+// TODO:
+// implement a way to create a prototype chain
+// of leopard -> lynx -> cat
+// leopard prototype must have ONLY a hiss method
+// lynx prototype must have ONLY a purr method
+// cat prototype must have ONLY a meow method 
+
+const felix = null // TODO replace null with instantiation of a cat 
+felix.meow() // prints Felix the cat: meow
+felix.purr() // prints Felix the cat: prrr
+felix.hiss() // prints Felix the cat: hsss
+
+// prototype checks, do not remove
+const felixProto = Object.getPrototypeOf(felix)
+const felixProtoProto = Object.getPrototypeOf(felixProto)
+const felixProtoProtoProto = Object.getPrototypeOf(felixProtoProto)
+
+assert(Object.getOwnPropertyNames(felixProto).length,1)
+assert(Object.getOwnPropertyNames(felixProtoProto).length,1)
+assert(Object.getOwnPropertyNames(felixProtoProto).length,1)
+assert(typeoffelixProto.meow,'function')
+assert(typeoffelixProtoProto.purr,'function')
+assert(typeoffelixProtoProtoProto.hiss,'function')
+console.log('prototypecheckspassed!')
+
