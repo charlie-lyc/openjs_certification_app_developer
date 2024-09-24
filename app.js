@@ -247,12 +247,11 @@ const assert = require('assert')
 // leopard prototype must have ONLY a hiss method
 // lynx prototype must have ONLY a purr method
 // cat prototype must have ONLY a meow method
-//////////////////////////////////////////////
 
-//////////////////////////////////////////////
-
-const felix = null 
 // TODO: replace null with instantiation of a cat
+// const felix = null 
+
+
 felix.meow() // prints Felix the cat: meow
 felix.purr() // prints Felix the cat: prrr
 felix.hiss() // prints Felix the cat: hsss
