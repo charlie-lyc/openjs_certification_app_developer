@@ -234,9 +234,9 @@
 // //////////////////////////////////
 // const sayHiTo = prefixer('Hello')
 // const sayByeTo = prefixer('Goodbye')
-// console.log(sayHiTo('Dave')) // prints'Hello Dave'
-// console.log(sayHiTo('Annie')) // prints'Hello Annie'
-// console.log(sayByeTo('Dave')) // prints'Goodbye Dave'
+// console.log(sayHiTo('Dave')) // prints 'Hello Dave'
+// console.log(sayHiTo('Annie')) // prints 'Hello Annie'
+// console.log(sayByeTo('Dave')) // prints 'Goodbye Dave'
 
 /*********************************************************************/
 
@@ -248,23 +248,79 @@ const assert = require('assert')
 // lynx prototype must have ONLY a purr method
 // cat prototype must have ONLY a meow method
 
+///////////////////////////////////////////////////////////////////
+function Leopard (name) {
+    this.name = name
+}
+Leopard.prototype.hiss = function () {
+    console.log(this.name + ' the cat: hsss')
+}
+function Lynx (name) {
+    Leopard.call(this, name)
+}
+Lynx.prototype = Object.create(Leopard.prototype)
+Lynx.prototype.purr = function () {
+    console.log(this.name + ' the cat: purr')
+}
+function Cat (name) {
+    Lynx.call(this, name)
+}
+Cat.prototype = Object.create(Lynx.prototype)
+Cat.prototype.meow = function () {   
+    console.log(this.name + ' the cat: meow')
+}
+///////////////////////////////////////////////////////////////////
+
 // TODO: replace null with instantiation of a cat
-// const felix = null 
-
-
-felix.meow() // prints Felix the cat: meow
-felix.purr() // prints Felix the cat: prrr
-felix.hiss() // prints Felix the cat: hsss
+// const felix = null
+const felix = new Cat('Felix')
+felix.meow() // prints 'Felix the cat: meow'
+felix.purr() // prints 'Felix the cat: prrr'
+felix.hiss() // prints 'Felix the cat: hsss'
 
 // prototype checks, do not remove
 const felixProto = Object.getPrototypeOf(felix)
 const felixProtoProto = Object.getPrototypeOf(felixProto)
 const felixProtoProtoProto = Object.getPrototypeOf(felixProtoProto)
 
-assert(Object.getOwnPropertyNames(felixProto).length,1)
-assert(Object.getOwnPropertyNames(felixProtoProto).length,1)
-assert(Object.getOwnPropertyNames(felixProtoProto).length,1)
-assert(typeof felixProto.meow,'function')
-assert(typeof felixProtoProto.purr,'function')
-assert(typeof felixProtoProtoProto.hiss,'function')
-console.log('prototypecheckspassed!')
+/* 아래의 검증 결과 아무런 에러가 발생되지 않게하면 정상적으로 prototype chain을 작성한 것이다! */
+assert.strictEqual(Object.getOwnPropertyNames(felixProto).length, 1)
+assert.strictEqual(Object.getOwnPropertyNames(felixProtoProto).length, 1)
+assert.strictEqual(Object.getOwnPropertyNames(felixProtoProto).length, 1)
+assert.strictEqual(typeof felixProto.meow, 'function')
+assert.strictEqual(typeof felixProtoProto.purr, 'function')
+assert.strictEqual(typeof felixProtoProtoProto.hiss, 'function')
+/* 위의 검증 결과 아무런 에러가 발생되지 않았다면, 아래의 문장이 출력된다! */
+console.log('prototype checks passed!') 
+
+///////////////////////////////////////////////////////////////////
+/* 이 방법으로도 prototype chain 을 만들 수 있지만 검증과정에서 에러가 발생된다! */
+// class Leopard {
+//     constructor (name) {
+//         this.name = name
+//     }
+//     hiss () {
+//         console.log(this.name + ' the cat: hsss')
+//     }
+// }
+// class Lynx extends Leopard {
+//     constructor (name) {
+//         super (name)
+//     }
+//     purr () {
+//         console.log(this.name + ' the cat: prrr')
+//     }
+// }
+// class Cat extends Lynx {
+//     constructor (name) {
+//         super (name)
+//     }
+//     meow () {
+//         console.log(this.name + ' the cat: meow')
+//     }
+// }
+// const felix = new Cat('Felix')
+// felix.meow() // prints 'Felix the cat: meow'
+// felix.purr() // prints 'Felix the cat: prrr'
+// felix.hiss() // prints 'Felix the cat: hsss'
+///////////////////////////////////////////////////////////////////
